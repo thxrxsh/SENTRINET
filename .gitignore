@@ -1,0 +1,5 @@
+#Environment dir
+/venv
+
+#Configuration file
+.conf

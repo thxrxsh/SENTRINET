@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
@@ -12,9 +14,30 @@ from collections import defaultdict
 import time
 import csv
 import os
+from configparser import ConfigParser
 
 
-ENGINE = 'XGBoost'
+config = ConfigParser()
+config.read(os.path.join(settings.STATICFILES_DIRS[0], 'config.ini'))
+
+ENGINE = config.get('system', 'engine')
+
+PROTOCOL_LE_PATH = os.path.join(settings.STATICFILES_DIRS[0], 'joblibs', 'protocol_label_encoder.joblib')
+SERVICE_LE_PATH = os.path.join(settings.STATICFILES_DIRS[0], 'joblibs', 'service_label_encoder.joblib')
+FLAG_LE_PATH = os.path.join(settings.STATICFILES_DIRS[0], 'joblibs', 'flag_label_encoder.joblib')
+ATTACK_LE_PATH = os.path.join(settings.STATICFILES_DIRS[0], 'joblibs', 'attack_label_encoder.joblib')
+SCALER_LE_PATH = os.path.join(settings.STATICFILES_DIRS[0], 'joblibs', 'scaler.joblib')
+
+RFC_PATH = os.path.join(settings.STATICFILES_DIRS[0], 'joblibs', 'random_forest_model.joblib')
+XGB_PATH = os.path.join(settings.STATICFILES_DIRS[0], 'joblibs', 'xgboost_model.joblib')
+
+PACKETS_CSV_PATH = os.path.join(settings.STATICFILES_DIRS[0], 'capture_history', 'packet_predictions.csv')
+
+TRAIN_DATA_CSV_PATH = os.path.join(settings.STATICFILES_DIRS[0], 'datasets', 'NSL_KDD', 'KDDTrain+.csv')
+TEST_DATA_CSV_PATH = os.path.join(settings.STATICFILES_DIRS[0], 'datasets', 'NSL_KDD', 'KDDTest+.csv')
+
+
+
 
 ATTACK_NAMES = {
     0: 'DoS',
@@ -128,13 +151,10 @@ HOST_STATS = defaultdict(lambda: {
 
 
 
-
-
-
 def setupDataset():
     # Load the dataset
-    train_data = pd.read_csv('datasets/NSL_KDD/KDDTrain+.csv', header=None)
-    test_data = pd.read_csv('datasets/NSL_KDD/KDDTest+.csv', header=None)
+    train_data = pd.read_csv(TRAIN_DATA_CSV_PATH, header=None)
+    test_data = pd.read_csv(TEST_DATA_CSV_PATH, header=None)
 
 
     train_data.columns = COLUMN_NAMES
@@ -165,10 +185,10 @@ def encodeLabels(data):
     data['attack'] = attack_le.fit_transform(data['attack'])
 
     # Save the fitted LabelEncoders
-    joblib.dump(protocol_le, 'joblibs/protocol_label_encoder.joblib')
-    joblib.dump(service_le, 'joblibs/service_label_encoder.joblib')
-    joblib.dump(flag_le, 'joblibs/flag_label_encoder.joblib')
-    joblib.dump(attack_le, 'joblibs/attack_label_encoder.joblib')
+    joblib.dump(protocol_le, PROTOCOL_LE_PATH)
+    joblib.dump(service_le, SERVICE_LE_PATH)
+    joblib.dump(flag_le, FLAG_LE_PATH)
+    joblib.dump(attack_le, ATTACK_LE_PATH)
 
     # Standardize numerical features
     scaler = StandardScaler()
@@ -178,7 +198,7 @@ def encodeLabels(data):
     data[numerical_cols] = scaler.fit_transform(data[numerical_cols])
 
     # Save the fitted StandardScaler
-    joblib.dump(scaler, 'joblibs/scaler.joblib')
+    joblib.dump(scaler, SCALER_LE_PATH)
 
     return data
 
@@ -201,12 +221,9 @@ def trainRandomForestClassifier(X_train, y_train):
     clf.fit(X_train, y_train)
 
     #Save trained RandomForestClassifier model
-    joblib.dump(clf, 'joblibs/random_forest_model.joblib')
+    joblib.dump(clf, RFC_PATH)
 
-    return {
-        'clf' : clf,
-        'clf_dir' : 'joblibs/random_forest_model.joblib'
-    }
+    return clf
 
 
 def trainXGBoost(X_train, y_train):
@@ -214,16 +231,9 @@ def trainXGBoost(X_train, y_train):
     clf.fit(X_train, y_train)
 
     #Save trained XGBoost model
-    joblib.dump(clf, 'joblibs/xgboost_model.joblib')
+    joblib.dump(clf, XGB_PATH)
 
-    return {
-        'clf' : clf,
-        'clf_dir' : 'joblibs/xgboost_model.joblib'
-    }
-
-
-
-
+    return clf
 
 
 
@@ -253,9 +263,9 @@ def mapTcpFlags(tcp_flags):
 
 
 def encodeFeatures(protocol_type, flag, service):
-    protocol_type_le = joblib.load('joblibs/protocol_label_encoder.joblib')
-    service_le = joblib.load('joblibs/service_label_encoder.joblib')
-    flag_le = joblib.load('joblibs/flag_label_encoder.joblib')
+    protocol_type_le = joblib.load(PROTOCOL_LE_PATH)
+    service_le = joblib.load(SERVICE_LE_PATH)
+    flag_le = joblib.load(FLAG_LE_PATH)
 
     # Encode protocol_type
     protocol_type_encoded = protocol_type_le.transform([protocol_type])[0] if protocol_type != -1 else -1
@@ -433,12 +443,12 @@ def extractFeatures(packet):
     ]
 
 
-    return feature_vector
+    return feature_vector 
 
 
 
 
-def writePacketToCSV(feature_vector, attack_type, csv_filename='packet_predictions.csv'):
+def writePacketToCSV(feature_vector, attack_type, csv_filename=PACKETS_CSV_PATH):
     global FEATURE_NAMES
 
     # Check if the file exists
@@ -461,13 +471,13 @@ def writePacketToCSV(feature_vector, attack_type, csv_filename='packet_predictio
 def predictPacketClass(feature_vector_encoded):
     global ENGINE, FEATURE_NAMES, ATTACK_NAMES
 
-    scaler = joblib.load('joblibs/scaler.joblib')
+    scaler = joblib.load(SCALER_LE_PATH)
 
     if ENGINE == 'XGBoost':
-        clf = joblib.load('joblibs/xgboost_model.joblib')
+        clf = joblib.load(XGB_PATH)
     
     elif ENGINE == 'RandomForestClassifier':
-        clf = joblib.load('joblibs/random_forest_model.joblib')
+        clf = joblib.load(RFC_PATH)
 
 
     # Create a DataFrame from the feature vector
@@ -481,46 +491,58 @@ def predictPacketClass(feature_vector_encoded):
     return attack_type
 
 
-# Example packet capture loop
+
+
+
+
+stop_flag = False
+
+def set_stop_flag(value):
+    global stop_flag
+    stop_flag = value
+
 def capturePackets(interface=None):
-    
     if not interface:
         interface = conf.iface
 
     def processPacket(packet):
         try:
-          feature_vector = extractFeatures(packet)
+            feature_vector = extractFeatures(packet)
 
-          feature_vector_encoded = feature_vector[:]
-          # Encode the labels
-          protocol_type_encoded, flag_encoded, service_encoded = encodeFeatures(feature_vector[1], feature_vector[3], feature_vector[2])
+            feature_vector_encoded = feature_vector[:]
+            # Encode the labels
+            protocol_type_encoded, flag_encoded, service_encoded = encodeFeatures(feature_vector[1], feature_vector[3], feature_vector[2])
 
-          feature_vector_encoded[1] = protocol_type_encoded
-          feature_vector_encoded[3] = flag_encoded
-          feature_vector_encoded[2] = service_encoded
+            feature_vector_encoded[1] = protocol_type_encoded
+            feature_vector_encoded[3] = flag_encoded
+            feature_vector_encoded[2] = service_encoded
 
-          # Predict the class of the packet
-          attack_type = predictPacketClass(feature_vector_encoded)
+            # Predict the class of the packet
+            attack_type = predictPacketClass(feature_vector_encoded)
 
-          print(f"Packet classified as: {attack_type}\n")
+            print(f"Packet classified as: {attack_type}\n")
 
-          # Write the packet details to the CSV file
-          writePacketToCSV(feature_vector, attack_type)
+            # Write the packet details to the CSV file
+            writePacketToCSV(feature_vector, attack_type)
 
         except Exception as e:
             print(f"Error processing packet: {e}")
 
-    sniff(iface=interface, prn=processPacket)
+    def packet_capture_loop():
+        global stop_flag
+        sniff(iface=interface, prn=processPacket, stop_filter=lambda x: stop_flag)
+    
+    packet_capture_loop()
 
 
 
 
-data = setupDataset()
+# data = setupDataset()
 
-data = encodeLabels(data)
+# data = encodeLabels(data)
 
-X_train, X_test, y_train, y_test = splitData(data)
+# X_train, X_test, y_train, y_test = splitData(data)
 
-clf = trainXGBoost(X_train, y_train)
+# clf = trainXGBoost(X_train, y_train)
 
-capturePackets()
+# capturePackets()

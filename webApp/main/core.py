@@ -1,5 +1,7 @@
 from django.conf import settings
 
+# from main.models import ScanRecord
+
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
@@ -18,6 +20,9 @@ import socket
 import netifaces as ni
 from configparser import ConfigParser
 
+STOP_FLAG = False
+START_TIME = None
+STOP_TIME = None
 
 config = ConfigParser()
 config.read(os.path.join(settings.STATICFILES_DIRS[0], 'config.ini'))
@@ -530,13 +535,10 @@ def predictPacketClass(feature_vector_encoded):
 
 
 
-stop_flag = False
-
-def set_stop_flag(value):
-    global stop_flag
-    stop_flag = value
-
 def capturePackets(interface=None):
+    global START_TIME
+    START_TIME = datetime.now()
+
     if not interface:
         interface = conf.iface
 
@@ -564,10 +566,134 @@ def capturePackets(interface=None):
             print(f"Error processing packet: {e}")
 
     def packet_capture_loop():
-        global stop_flag
-        sniff(iface=interface, prn=processPacket, stop_filter=lambda x: stop_flag)
+        global STOP_FLAG
+        sniff(iface=interface, prn=processPacket, stop_filter=lambda x: STOP_FLAG)
     
     packet_capture_loop()
+
+
+
+
+
+
+
+
+def getCounts(csv_filename):
+    df = pd.read_csv(csv_filename)
+    attack_counts = df['attack_type'].value_counts()
+    return attack_counts.to_dict()
+
+
+def getAttackDetails(csv_filename):
+
+    df = pd.read_csv(csv_filename)
+    filtered_df = df[df['attack_type'] != 'Normal']
+    result_df = filtered_df[['date_time', 'attack_type', 'ip_addr']]
+    
+    return result_df.to_dict(orient='records')
+
+
+
+def analyzeStatus(csv_filename):
+    # Define thresholds for risk levels
+    RISK_THRESHOLDS = {
+        "Protected": 0,
+        "Low Risk": {
+            'Probe': 20,
+            'R2L': 25
+        },
+        "Medium Risk": {
+            'Probe': 30,
+            'R2L': 35
+        },
+        "High Risk": {
+            'Probe': 40,
+            'R2L': 45
+        },
+        "Critical": {
+            'Probe': 50,
+            'R2L': 55,
+            'DoS': 20,
+            'U2R': 20
+        }
+    }
+
+    # Analyze the CSV file
+    attack_counts = getCounts(csv_filename)
+    total_attacks = sum(attack_counts.values())
+
+    if total_attacks == 0:
+        return "Protected"  # Avoid division by zero
+
+    # Calculate the percentage of each attack type
+    attack_percentages = {attack: (count / total_attacks) * 100 for attack, count in attack_counts.items()}
+
+    # Check for specific critical attack types
+    if (attack_percentages.get('DoS', 0) > RISK_THRESHOLDS['Critical']['DoS'] or
+        attack_percentages.get('U2R', 0) > RISK_THRESHOLDS['Critical']['U2R']):
+        return "Critical"
+
+    # Determine the risk status based on percentages in predefined order
+    if any(attack_percentages.get(attack, 0) > threshold for attack, threshold in RISK_THRESHOLDS['Critical'].items()):
+        return "Critical"
+    elif any(attack_percentages.get(attack, 0) > threshold for attack, threshold in RISK_THRESHOLDS['High Risk'].items()):
+        return "High Risk"
+    elif any(attack_percentages.get(attack, 0) > threshold for attack, threshold in RISK_THRESHOLDS['Medium Risk'].items()):
+        return "Medium Risk"
+    elif any(attack_percentages.get(attack, 0) > threshold for attack, threshold in RISK_THRESHOLDS['Low Risk'].items()):
+        return "Low Risk"
+
+    return "Protected"
+
+
+def analyze(csv_filename=PACKETS_CSV_PATH):
+    counts = getCounts(csv_filename)
+    status = analyzeStatus(csv_filename)
+    attack_details = getAttackDetails(csv_filename)
+    print(status)
+
+    analyze_details = {'status':status, 'counts':counts, "attack_details" : attack_details}
+    return analyze_details
+
+
+
+
+def saveScanRecords():
+    global PACKETS_CSV_PATH, START_TIME, STOP_TIME
+
+    STOP_TIME = datetime.now()
+
+    csv_filename = PACKETS_CSV_PATH
+
+    # Format STOP_TIME to 'yyyy-mm-dd_hh-mm-ss'
+    formatted_time = STOP_TIME.strftime('%Y-%m-%d_%H-%M-%S')
+    new_csv_filename = os.path.join(settings.STATICFILES_DIRS[0], 'capture_history', f'{formatted_time}.csv')
+
+    # Analyze the CSV file to determine the status
+    analyze_details = analyze(csv_filename)
+    status = analyze_details['status']
+    
+    # Rename the CSV file
+    os.rename(csv_filename, new_csv_filename)
+
+    # Save the details to the ScanRecord table
+    # scan_record = ScanRecord(
+    #     start_time=START_TIME,
+    #     stop_time=STOP_TIME,
+    #     status=status,
+    #     csv_filename=new_csv_filename,
+    #     user=None  # Replace with the actual user if needed
+    # )
+    # scan_record.save()
+
+
+
+
+def set_stop_flag(value):
+    global STOP_FLAG
+    STOP_FLAG = value
+
+    
 
 
 

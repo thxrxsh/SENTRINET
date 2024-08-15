@@ -10,13 +10,7 @@ is_analyzing = False
 stop_scanning = False
 stop_analyzing = False
 
-def startScan():
-    global scan_thread, is_scanning, stop_scanning
-    if not is_scanning:  
-        is_scanning = True
-        stop_scanning = False
-        scan_thread = threading.Thread(target=capturePackets)
-        scan_thread.start()
+
 
 def capturePackets():
     global stop_scanning
@@ -24,16 +18,8 @@ def capturePackets():
     core.capturePackets()
 
 
-def analyzePackets():
-    global analysis_thread, is_analyzing, stop_analyzing
-    if not is_analyzing: 
-        is_analyzing = True
-        stop_analyzing = False
-        analysis_thread = threading.Thread(target=_analyzePacketsThread)
-        analysis_thread.start()
-
 #Fake Analysing Function
-def _analyzePacketsThread():
+def analyzePackets():
     global stop_analyzing
     while not stop_analyzing:
         print("Analyzing packets...")
@@ -41,12 +27,13 @@ def _analyzePacketsThread():
 
 
 
-def stopProcesses():
+def stopScan():
     global stop_scanning, stop_analyzing, is_scanning, is_analyzing
 
     stop_scanning = True
     stop_analyzing = True
     core.set_stop_flag(True)
+    core.saveScanRecords()
 
     if scan_thread is not None:
         scan_thread.join()
@@ -60,6 +47,19 @@ def stopProcesses():
 
 
 
-def startProcesses():
-    startScan()
-    analyzePackets()
+def startScan():
+    global scan_thread, is_scanning, stop_scanning
+    global analysis_thread, is_analyzing, stop_analyzing
+
+    if not is_scanning:  
+        is_scanning = True
+        stop_scanning = False
+        scan_thread = threading.Thread(target=capturePackets)
+        scan_thread.start()
+
+
+    if not is_analyzing: 
+        is_analyzing = True
+        stop_analyzing = False
+        analysis_thread = threading.Thread(target=analyzePackets)
+        analysis_thread.start()

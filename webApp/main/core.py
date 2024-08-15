@@ -14,6 +14,8 @@ from collections import defaultdict
 import time
 import csv
 import os
+import socket
+import netifaces as ni
 from configparser import ConfigParser
 
 
@@ -31,7 +33,7 @@ SCALER_LE_PATH = os.path.join(settings.STATICFILES_DIRS[0], 'joblibs', 'scaler.j
 RFC_PATH = os.path.join(settings.STATICFILES_DIRS[0], 'joblibs', 'random_forest_model.joblib')
 XGB_PATH = os.path.join(settings.STATICFILES_DIRS[0], 'joblibs', 'xgboost_model.joblib')
 
-PACKETS_CSV_PATH = os.path.join(settings.STATICFILES_DIRS[0], 'capture_history', 'packet_predictions.csv')
+PACKETS_CSV_PATH = os.path.join(settings.STATICFILES_DIRS[0], 'capture_history', 'running_scan.csv')
 
 TRAIN_DATA_CSV_PATH = os.path.join(settings.STATICFILES_DIRS[0], 'datasets', 'NSL_KDD', 'KDDTrain+.csv')
 TEST_DATA_CSV_PATH = os.path.join(settings.STATICFILES_DIRS[0], 'datasets', 'NSL_KDD', 'KDDTest+.csv')
@@ -280,6 +282,21 @@ def encodeFeatures(protocol_type, flag, service):
 
 
 
+def get_my_ip():
+    # Get the default gateway (this is usually the gateway for internet traffic)
+    gws = ni.gateways()
+    default_gateway = gws['default'][ni.AF_INET][1]  # Get the interface associated with the default gateway
+    
+    try:
+        # Get the IP address for the interface used by the default gateway
+        iface_details = ni.ifaddresses(default_gateway)
+        if ni.AF_INET in iface_details:
+            ip_addr = iface_details[ni.AF_INET][0]['addr']
+            return default_gateway, ip_addr
+    except KeyError:
+        return None, None
+
+
 
 # Function to extract features from a packet
 def extractFeatures(packet):
@@ -287,6 +304,24 @@ def extractFeatures(packet):
 
     session_key = (packet[IP].src, packet[IP].dst, packet[TCP].sport, packet[TCP].dport)
     SESSIONS[session_key].append(packet)
+
+
+    ip_addr = ''
+    iface, iface_ip = get_my_ip()
+
+    if iface_ip and packet.haslayer(IP):
+        print("Sender : ", packet[IP].src)
+        print("Receiver : ", packet[IP].dst)
+
+        if packet[IP].dst == iface_ip:
+            # Incoming packet (sender's IP)
+            sender_ip = packet[IP].src
+            ip_addr = sender_ip
+        else:
+            # Outgoing packet (receiver's IP)
+            receiver_ip = packet[IP].dst
+            ip_addr = receiver_ip
+
 
 
     # Get current time
@@ -439,7 +474,7 @@ def extractFeatures(packet):
         diff_srv_rate, srv_diff_host_rate, dst_host_count, dst_host_srv_count,
         dst_host_same_srv_rate, dst_host_diff_srv_rate, dst_host_same_src_port_rate,
         dst_host_srv_diff_host_rate, dst_host_serror_rate, dst_host_srv_serror_rate,
-        dst_host_rerror_rate, dst_host_srv_rerror_rate
+        dst_host_rerror_rate, dst_host_srv_rerror_rate, ip_addr
     ]
 
 
@@ -453,7 +488,7 @@ def writePacketToCSV(feature_vector, attack_type, csv_filename=PACKETS_CSV_PATH)
 
     # Check if the file exists
     file_exists = os.path.isfile(csv_filename)
-    columns = FEATURE_NAMES + ['attack_type']
+    columns = FEATURE_NAMES + ['ip_addr', 'attack_type', 'date_time']
     # Open CSV file in append mode
     with open(csv_filename, mode='a', newline='') as file:
         writer = csv.DictWriter(file, fieldnames=columns)
@@ -463,7 +498,7 @@ def writePacketToCSV(feature_vector, attack_type, csv_filename=PACKETS_CSV_PATH)
             writer.writeheader()
 
         # Write the packet details
-        writer.writerow(dict(zip(columns, feature_vector + [attack_type])) )
+        writer.writerow(dict(zip(columns, feature_vector + [attack_type, datetime.now()])) )
 
 
 
@@ -509,7 +544,7 @@ def capturePackets(interface=None):
         try:
             feature_vector = extractFeatures(packet)
 
-            feature_vector_encoded = feature_vector[:]
+            feature_vector_encoded = feature_vector[:-1]
             # Encode the labels
             protocol_type_encoded, flag_encoded, service_encoded = encodeFeatures(feature_vector[1], feature_vector[3], feature_vector[2])
 
@@ -533,6 +568,7 @@ def capturePackets(interface=None):
         sniff(iface=interface, prn=processPacket, stop_filter=lambda x: stop_flag)
     
     packet_capture_loop()
+
 
 
 

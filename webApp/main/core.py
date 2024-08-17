@@ -1,7 +1,5 @@
 from django.conf import settings
 
-# from main.models import ScanRecord
-
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
@@ -19,6 +17,8 @@ import os
 import socket
 import netifaces as ni
 from configparser import ConfigParser
+
+from . import database
 
 STOP_FLAG = False
 START_TIME = None
@@ -658,7 +658,7 @@ def analyze(csv_filename=PACKETS_CSV_PATH):
 
 
 
-def saveScanRecords():
+def saveScanRecords(request):
     global PACKETS_CSV_PATH, START_TIME, STOP_TIME
 
     STOP_TIME = datetime.now()
@@ -674,19 +674,13 @@ def saveScanRecords():
     status = analyze_details['status']
     
     # Rename the CSV file
-    os.rename(csv_filename, new_csv_filename)
-
-    # Save the details to the ScanRecord table
-    # scan_record = ScanRecord(
-    #     start_time=START_TIME,
-    #     stop_time=STOP_TIME,
-    #     status=status,
-    #     csv_filename=new_csv_filename,
-    #     user=None  # Replace with the actual user if needed
-    # )
-    # scan_record.save()
-
-
+    try:
+        os.rename(csv_filename, new_csv_filename)
+        database.saveScanRecord(request, START_TIME, STOP_TIME, status, new_csv_filename)
+        return True
+    
+    except:
+        return False
 
 
 def set_stop_flag(value):

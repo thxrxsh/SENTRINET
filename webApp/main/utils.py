@@ -27,13 +27,13 @@ def analyzePackets():
 
 
 
-def stopScan():
+def stopScan(request):
     global stop_scanning, stop_analyzing, is_scanning, is_analyzing
 
     stop_scanning = True
     stop_analyzing = True
     core.set_stop_flag(True)
-    core.saveScanRecords()
+    core.saveScanRecords(request)
 
     if scan_thread is not None:
         scan_thread.join()
@@ -41,9 +41,9 @@ def stopScan():
     if analysis_thread is not None:
         analysis_thread.join()
 
-
     is_scanning = False
     is_analyzing = False
+
 
 
 

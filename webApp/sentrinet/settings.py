@@ -39,6 +39,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'webpack_loader',
+    'mathfilters',
+    'widget_tweaks',
+
     'main.apps.MainConfig',
 ]
 
@@ -126,6 +130,14 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = (
   BASE_DIR / 'static',
 )
+
+
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'BUNDLE_DIR_NAME': 'bundles/',
+        'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats.json'),
+    }
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

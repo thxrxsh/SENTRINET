@@ -102,14 +102,19 @@
                 errorMessage += "{{ error|escape }}   " ;
             {% endfor %}
 
-            if (errorMessage.includes("This field is required.")){
-                var is_null_feilds = true;
+            if (errorMessage.includes('This password is too short. It must contain at least 8 characters') || (errorMessage.includes('This password is too common')) ) {
+                $('#password1-input').addClass('is-invalid');
             }
-            var errorMessage = errorMessage.replaceAll("This field is required.", "");
 
+            if (errorMessage.includes('This field is required.')) {
+                toest("ERROR", 'Complete all feilds' );
 
-            if (errorMessage.includes('This password is too short. It must contain at least 8 characters')) {
+            } else if (errorMessage.includes('A user with that username already exists.')) {
+                toest("ERROR", 'A user with that username already exists' );
+
+            } else if (errorMessage.includes('This password is too short. It must contain at least 8 characters')) {
                 toest("ERROR", 'This password is too short. It must contain at least 8 characters' );
+                $('#password1-input').addClass('is-invalid');
 
             } else if (errorMessage.includes('This password is too common')) {
                 toest("ERROR", 'This password is too common' );
@@ -120,13 +125,8 @@
             } else if (errorMessage.includes('The password is too similar to the email address')) {
                 toest("ERROR", 'The password is too similar to the email address' );
 
-            } else
-
-            if (errorMessage.trim() != ""){
+            } else {
                 toest("ERROR", errorMessage );
-
-            } else if (is_null_feilds) {
-                toest("ERROR", "Complete all feilds" );
             }
 
         {% endif %}

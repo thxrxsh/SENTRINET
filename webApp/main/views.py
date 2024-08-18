@@ -18,7 +18,7 @@ SCAN_RUNNING = False
 
 def register(request, template='register.html'):
     if request.user.is_authenticated:
-        return redirect('overview')
+        return redirect('home')
 
     form = RegistrationForm()
 
@@ -27,7 +27,7 @@ def register(request, template='register.html'):
 
         if form.is_valid():
             form.save()
-            return redirect(request.GET.get('next', 'overview'))
+            return redirect(request.GET.get('next', 'home'))
 
 
     args = {'title':'SENTRINET | Register', 'register_form':form }
@@ -37,7 +37,7 @@ def register(request, template='register.html'):
 
 def login(request, template='login.html'):
     if request.user.is_authenticated:
-        return redirect('overview')
+        return redirect('home')
 
     form = LoginForm()
 
@@ -51,7 +51,7 @@ def login(request, template='login.html'):
 
             if user is not None:
                 auth_login(request, user)
-                return redirect(request.GET.get('next', 'overview'))
+                return redirect(request.GET.get('next', 'home'))
 
     args = {'title': 'SENTRINET | Login', 'login_form': form}
     return TemplateResponse(request, template, args)
@@ -71,13 +71,13 @@ def logout(request):
 
 
 # @login_required(login_url='/login/')
-def overview(request):
+def home(request, template='dashboard.html'):
     
-    if request.method == 'GET':
 
-        response = "SENTRINET"
 
-        return HttpResponse(response)
+    args = {'title':'SENTRINET | Home' }
+
+    return TemplateResponse(request, template, args)
 
 
 
@@ -85,7 +85,7 @@ def overview(request):
 
 # @csrf_exempt
 # @login_required(login_url='/login/')
-def scan(request):
+def scan(request, template='dashboard.html'):
     global SCAN_RUNNING
     
     if request.method == 'POST':
@@ -107,8 +107,17 @@ def scan(request):
     else:
         response = "POST 'action' to 'start' to start scan.\nPOST 'action' to 'stop' to stop scan"
     
-    return HttpResponse(response)
+    args = {'title':'SENTRINET | Scan' }
+
+    return TemplateResponse(request, template, args)
 
 
 
 
+# @login_required(login_url='/login/')
+def reports(request, template='dashboard.html'):
+    
+
+    args = {'title':'SENTRINET | Reports' }
+
+    return TemplateResponse(request, template, args)

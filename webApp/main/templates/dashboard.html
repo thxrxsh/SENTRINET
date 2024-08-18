@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load widget_tweaks %}
+
+
+{% block head %}
+
+    <link rel="stylesheet" href="{% static '/web/css/dashboard.css' %}">
+
+    {% if request.path == '/' %}
+        <link rel="stylesheet" href="{% static '/web/css/home.css' %}">
+    
+    {% elif request.path == '/scan/'%}
+        <link rel="stylesheet" href="{% static '/web/css/scan.css' %}">
+
+    {% elif request.path == '/reports/'%}
+        <link rel="stylesheet" href="{% static '/web/css/reports.css' %}">
+
+    {% elif request.path == '/alerts/'%}
+        <link rel="stylesheet" href="{% static '/web/css/alerts.css' %}">
+
+    {% elif request.path == '/settings/'%}
+            <link rel="stylesheet" href="{% static '/web/css/settings.css' %}">
+
+    {% endif %}
+
+
+{% endblock head %}
+
+
+
+
+{% block content %}
+
+
+<div id="main_container">
+
+    <div id="large-gradient">&nbsp;</div>
+    <div id="small-gradient">&nbsp;</div>
+
+
+    <div class="row w-100">
+        <div class="col-1 px-0" id="sidebar">
+
+            <div id="sidebar-expand-content" class="hide">
+                <br>
+                <div id="sidebar_top-content" class="d-flex justify-content-around w-100">
+    
+                    <div id="logo" class="d-flex">
+                        <img src=" {% static 'web/images/logo-512x512.png' %}" alt="LOGO" class="logo-img">
+    
+                        <h2 id="logo-text" class="ps-2 poppins-bold">SENTRINET</h2>
+                    </div>
+    
+                    <div>
+                        <button type="button" id="panel-hide" class="btn btn-2 p-1 px-2 mt-1"><i class="bi bi-arrow-bar-left"></i></button>
+                    </div>                
+                </div>
+    
+    
+    
+                <ul id="nav-list" class="px-4">
+                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="/" id="home-link" class="nav-link poppins-semibold fs-5"> <i class="px-2 bi bi-house-door-fill"></i>  Home</a></li>
+                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="/scan" id="scan-link" class="nav-link poppins-semibold fs-5"> <i class="px-2 bi bi-upc-scan"></i>  Scan</a></li>
+                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="/reports" id="reports-link" class="nav-link poppins-semibold fs-5"> <i class="px-2 bi bi-bar-chart-line-fill"></i>  Reports</a></li>
+                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="/alerts" id="alerts-links" class="nav-link poppins-semibold fs-5"> <i class="px-2 bi bi-bell-fill"></i>  Alerts</a></li>
+                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="settings" id="settings-link" class="nav-link poppins-semibold fs-5"> <i class="px-2 bi bi-gear-fill"></i>  Settings</a></li>
+                </ul>
+    
+    
+                <div id="profile-container" class="d-flex justify-content-between m-4">
+                    <h5><i class="bi bi-person-fill me-3"></i> <span id="user_name">thxrxsh</span> </h5>
+                    <button type="button" class="btn btn-sm"><i class="bi bi-chevron-down"></i></button>
+                </div>
+
+
+            </div>
+
+
+
+            <div id="sidebar-collapsed-content" class="">
+                <br>
+
+                <div id="logo" class="d-flex justify-content-center">
+                    <img src=" {% static 'web/images/logo-512x512.png' %}" alt="LOGO" id="logo-img-collapsed" class="logo-img ms-2">
+                </div>
+                <br>
+                <div class="d-flex justify-content-center">
+                    <button type="button" id="panel-show" class="btn btn-2 p-1 px-2 mt-1 ms-2"><i class="bi bi-arrow-bar-right"></i></button>
+                </div> 
+
+                <ul id="nav-list-collapsed" class="px-3 ms-2">
+                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="/" class="nav-link poppins-semibold fs-5 text-center"> <i class="fs-3 bi bi-house-door-fill"></i>&nbsp;</a></li>
+                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="/scan" class="nav-link poppins-semibold fs-5 text-center"> <i class="fs-3 bi bi-upc-scan"></i>&nbsp;</a></li>
+                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="/reports" class="nav-link poppins-semibold fs-5 text-center"> <i class="fs-3 bi bi-bar-chart-line-fill">&nbsp;</i></a></li>
+                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="/alerts" class="nav-link poppins-semibold fs-5 text-center"> <i class="fs-3 bi bi-bell-fill"></i>&nbsp;</a></li>
+                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="settings" class="nav-link poppins-semibold fs-5 text-center"> <i class="fs-3 bi bi-gear-fill"></i>&nbsp;</a></li>
+                </ul>
+    
+                <div id="profile-container-collapsed" class="d-flex justify-content-center m-4">
+                    <h3> <a href=""><i class="bi bi-person-fill ps-2"></i> </a></h3>
+                </div>
+
+            </div>
+
+
+
+        </div>
+
+
+
+        <div class="col-11 overflow-auto" id="dashboard-content">
+
+
+        {% if request.path == '/' %}
+            {% include "home.html" %}
+        
+        {% elif request.path == '/scan/'%}
+            {% include "scan.html" %}
+    
+        {% elif request.path == '/reports/'%}
+            {% include "reports.html" %}
+
+        {% elif request.path == '/alerts/'%}
+            {% include "alerts.html" %}
+
+        {% elif request.path == '/settings/'%}
+            {% include "settings.html" %}
+
+        {% endif %}
+
+
+        </div>
+
+    </div>
+
+
+
+
+
+
+
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static '/web/js/dashboard.js' %}"></script>
+
+
+{% if request.path == '/' %}
+    <script src="{% static '/web/js/home.js' %}"></script>
+
+{% elif request.path == '/scan/'%}
+    <script src="{% static '/web/js/scan.js' %}"></script>
+
+{% elif request.path == '/reports/'%}
+    <script src="{% static '/web/js/reports.js' %}"></script>
+
+{% elif request.path == '/alerts/'%}
+    <script src="{% static '/web/js/alerts.js' %}"></script>
+
+{% elif request.path == '/settings/'%}
+    <script src="{% static '/web/js/settings.js' %}"></script>
+{% endif %}
+
+
+
+
+
+
+
+<script>
+    
+    $(document).ready(function () {
+    
+        {% if login_form.errors %}
+            var errorMessage = "";
+            var errorFields = [];
+            {% for field in login_form %}
+                {% for error in field.errors %}
+                    errorMessage += "{{ error|escape }}   " ;
+                {% endfor %}                
+                $('#{{ field.name }}-input').addClass('is-invalid');
+
+            {% endfor %}
+            {% for error in login_form.non_field_errors %}
+                errorMessage += "{{ error|escape }}   " ;
+            {% endfor %}
+
+            toest("ERROR", errorMessage);
+        {% endif %}
+
+
+    
+    });
+    </script>
+
+    
+{% endblock content %}

@@ -9,7 +9,21 @@
     --gradient-1 : linear-gradient(200deg, rgba(0,86,91,0.7904411764705882) 30%, rgba(95,55,159,0.7904411764705882) 100%);
     --gradient-2 : linear-gradient(200deg, rgba(9,196,198,0.2274159663865546) 0%, rgba(55,63,159,0.48792016806722693) 100%);
     --gradient-3 : radial-gradient(circle, rgba(95, 106, 115, 0.40) 0%, rgba(180,199,217,0.4) 100%);
+    --glass : linear-gradient(200deg, rgba(95,106,115,0.06214985994397759) 0%, rgba(180,199,217,0.06214985994397759) 100%);
+    --transparent-green : rgba(185, 254, 236, 0.3);
+    --transparent : rgba(255, 255, 255, 0);
     --bs-focus-ring-color: none !important;
+}
+
+
+
+.alert-warning {
+  --bs-alert-color: #ffe184;
+  background: var(--glass);
+  /* --bs-alert-bg: #ffe1840f; */
+  /* --bs-alert-border-color: #a18b4b; */
+  --bs-alert-border-color: none;
+  --bs-alert-link-color: var(--bs-warning-text-emphasis);
 }
 
 
@@ -24,15 +38,15 @@ html {
     -webkit-user-select: none; /* Safari */
     -ms-user-select: none; /* IE 10 and IE 11 */
     user-select: none; /* Standard syntax */
-
+}
     /* width */
     ::-webkit-scrollbar {
-    width: 12px;
+    width: 6px;
     }
     
     /* Track */
     ::-webkit-scrollbar-track {
-        background: var(--gradient-1);
+        background: var(--gradient-2);
         border-radius: 5rem;
         opacity: 0.3;
     }
@@ -48,11 +62,26 @@ html {
     ::-webkit-scrollbar-thumb:hover {
         background: #555;
     }
+
+
+
+.material-symbols-outlined {
+  font-variation-settings:
+  'FILL' 1,
+  'wght' 700,
+  'GRAD' 0,
+  'opsz' 48
 }
+
 
 
 .fs-7 {
   font-size: 0.8rem;
+}
+
+
+.hide {
+  display: none;
 }
 
 .poppins-thin {
@@ -208,9 +237,19 @@ html {
 }
 
 .btn-1:hover {
-    background-color: var(--blue-3);
-    color: var(--white);
+  background-color: var(--blue-3);
+  color: var(--white);
 }
+
+.btn-2 {
+  background-color: var(--transparent-green);
+}
+
+.btn-2:hover {
+  background-color: var(--blue-2);
+}
+
+
 
 
 .form-control:not(.btn) {
@@ -218,9 +257,18 @@ html {
     border-radius: 0;
     border-bottom: 1px solid var(--white);
     color: var(--blue-1);
+    font-weight: 600;
     padding-left: 0;
     padding-right: 0;
 
+}
+
+.form-control:not(.btn):focus {
+  border-bottom: 1px solid var(--blue-4);
+}
+
+.form-check-input {
+  background-color: var(--ash);
 }
 
 .form-check-input:checked {
@@ -244,4 +292,8 @@ html {
 .link:hover {
     text-decoration: underline;
     text-underline-offset: 0.5em;
+}
+
+.toast-header, .toast-body{
+  background :var(--blue-1);
 }

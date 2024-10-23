@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load widget_tweaks %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static '/web/css/auth.css' %}">
+{% endblock head %}
+
+{% block content %}
+
+
+<div id="main-container">
+
+    <div id="small-gradient">&nbsp;</div>
+    <div id="large-gradient">&nbsp;</div>
+
+    <div class="container">
+        <div id="content-box" class="container row position-absolute top-50 start-50 translate-middle rounded rounded-5 p-4 ps-5">
+            <div class="col-6">
+                <h1 id="main-text" class="poppins-bold text-white text-center">Login</h1>
+                <br>
+                <h5 class="text-center">Join SENTRINET to Secure Your Network</h5>
+                
+                <img src="{% static 'web/images/robot.png' %}" alt="" id="robo-img" class="d-flex justify-content-center">
+                <div id="shadow">&nbsp;</div>
+
+            </div>
+
+            <div class="col-6 d-flex justify-content-center">
+                <form method="post" class="row g-3 mt-4" id="login_form">
+                    {% csrf_token %}
+                    <div class="col-12">
+                        <label for="username-input" class="form-label fs-5">Username</label>
+                        {% render_field login_form.username class+="form-control focus-ring bg-transparent mt-3" spellcheck="false" id="username-input"%}
+                    </div>
+
+                    <div class="col-12">
+                        <label for="password-input" class="form-label fs-5">Password</label>
+                        {% render_field login_form.password class+="form-control focus-ring bg-transparent mt-3" spellcheck="false" id="password-input"%}
+                    </div>
+
+                    <div class="col-12">
+                        <input type="submit" value="Login" class="btn btn-1 form-control rounded rounded-3 py-2 fs-5 poppins-semibold">
+                    </div>
+
+                    <p>Forgot password? &nbsp; <span><a href="" class="link">Reset Password</a></span></p>
+
+                </form>
+
+
+            </div>
+
+        </div>
+
+        <p class="position-absolute start-50 bottom-0 translate-middle-x" id="signup-signin-change">Don't have an account? &nbsp; <span><a href="/register" class="link" >Sign Up</a></span></p>
+
+    </div>
+
+</div>
+
+
+<script src="{% static '/web/js/auth.js' %}"></script>
+
+<script>
+    
+    $(document).ready(function () {
+    
+        {% if login_form.errors %}
+            var errorMessage = "";
+            var errorFields = [];
+            {% for field in login_form %}
+                {% for error in field.errors %}
+                    errorMessage += "{{ error|escape }}   " ;
+                {% endfor %}                
+                $('#{{ field.name }}-input').addClass('is-invalid');
+
+            {% endfor %}
+            {% for error in login_form.non_field_errors %}
+                errorMessage += "{{ error|escape }}   " ;
+            {% endfor %}
+
+            toest("ERROR", errorMessage);
+        {% endif %}
+
+
+    
+    });
+    </script>
+
+    
+{% endblock content %}

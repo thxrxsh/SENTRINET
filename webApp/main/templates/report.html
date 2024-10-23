@@ -1,0 +1,80 @@
+<script>
+    var report_data = "{{ report|escapejs|safe }}";
+    var report_data = JSON.parse(report_data);
+</script>
+
+<br><br>
+<div class="d-flex justify-content-center">
+
+    <div id="status-container" class="container">
+        <h1 class="text-center alert poppins-semibold" id="status"></h1>
+    </div>
+
+</div>
+
+<div class="row w-100">
+    <div id="donut-container" class="col-lg-5 m-5">
+        <canvas id="donutChart"></canvas>
+    </div>
+
+    <div class="col-lg-5 m-5">
+        <div class="table-responsive rounded rounded-3 m-5" id='scan_details-table-container'>
+            <table class="table" id="scan_details-table">
+                <thead><tr><th colspan=2 class="text-center"> Report Details</th> </tr></tdead>
+                <tr>
+                    <td class="px-4">Start Date</td>
+                    <td id="start_date"></td>
+                </tr>
+
+                <tr>
+                    <td class="px-4">Start Time</td>
+                    <td id="start_time"></td>
+                </tr>
+
+                <tr id="stop_date-row">
+                    <td class="px-4">Stop Date</td>
+                    <td id="stop_date"></td>
+                </tr>
+
+                <tr id="stop_time-row">
+                    <td class="px-4">Stop Time</td>
+                    <td id="stop_time"></td>
+                </tr>
+
+                <tr>
+                    <td class="px-4">Duration</td>
+                    <td id="duration"></td>
+                </tr>
+            </table>
+        </div>
+
+        <br><br>
+        {% if request.path == '/report/0/' %}
+            <a class="btn btn-lg btn-1 d-flex justify-content-center mx-5" href="/scan/">Scan Controls</a>
+        {% endif %}
+    </div>
+
+</div>
+
+<div id="line-container" class="row container px-5">
+    <canvas id="lineChart"></canvas>
+</div>
+
+<div class="table-responsive rounded rounded-3 m-5" id='attack-table-container'>
+    <table class="table fs-5 text-center" id="attack-table">
+        <thead>
+        <tr>
+            <th scope="col">Date</th>
+            <th scope="col">Time</th>
+            <th scope="col">IP</th>
+            <th scope="col">Domain</th>
+            <th scope="col">Attack</th>
+            <th scope="col">Level</th>
+        </tr>
+        </thead>
+        
+        <tbody id="attack-table-content">
+
+        </tbody>
+    </table>
+</div>

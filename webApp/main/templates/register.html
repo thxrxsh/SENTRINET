@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load widget_tweaks %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static '/web/css/auth.css' %}">
+{% endblock head %}
+
+{% block content %}
+
+
+<div id="main-container">
+
+    <div id="small-gradient">&nbsp;</div>
+    <div id="large-gradient">&nbsp;</div>
+
+    <div class="container">
+        <div id="content-box" class="container row position-absolute top-50 start-50 translate-middle rounded rounded-5 p-4 ps-5">
+            
+            <div class="col-6">
+                <h1 id="main-text" class="poppins-bold text-white text-center">Sign Up</h1>
+                <br>
+                <h5 class="text-center">Create Your SENTRINET Account</h5>
+                
+                <img src="{% static 'web/images/robot.png' %}" alt="" id="robo-img" class="d-flex justify-content-center">
+                <div id="shadow">&nbsp;</div>
+
+            </div>
+
+            <div class="col-6 d-flex justify-content-center">
+                <form method="post" class="row g-3 mt-4" id="login_form">
+                    {% csrf_token %}
+                    <div class="col-12">
+                        <label for="username-input" class="form-label mb-0 fs-5">Username</label>
+                        {% render_field register_form.username class+="form-control focus-ring bg-transparent mb-1" spellcheck="false" id="username-input" %}
+                    </div>
+
+                    <div class="col-12">
+                        <label for="email-input" class="form-label mb-0 fs-5">Email</label>
+                        {% render_field register_form.email class+="form-control focus-ring bg-transparent mb-1" spellcheck="false" id="email-input" %}
+                    </div>
+
+                    <div class="col-12">
+                        <label for="password1-input" class="form-label mb-0 fs-5">Password</label>
+                        {% render_field register_form.password1 type='password' class+="form-control focus-ring bg-transparent mb-1" spellcheck="false" id="password1-input" %}
+                    </div>
+
+                    <div class="col-12">
+                        <label for="password2-input" class="form-label mb-0 fs-5">Confirm Password</label>
+                        {% render_field register_form.password2 type='password' class+="form-control focus-ring bg-transparent mb-1" spellcheck="false" id="password2-input" %}
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="accept_terms_and_conditions-check" required>
+                        <label class="form-check-label fs-7" for="accept_terms_and_conditions-check">
+                          I agree to all <a href="" class="link">Terms & Conditions</a> and <a href="" class="link">Privacy & Policies</a>
+                        </label>
+                      </div>
+
+                    <div class="col-12">
+                        <input type="submit" value="Sign Up" class="btn btn-1 form-control rounded rounded-3 py-2 fs-5 poppins-semibold" id="signup-btn">
+                    </div>
+
+                </form>
+
+
+            </div>
+
+
+        </div>
+
+        <p class="position-absolute start-50 bottom-0 translate-middle-x" id="signup-signin-change">Already have an account? &nbsp; <span><a href="/login" class="link" >Login</a></span></p>
+
+    </div>
+
+</div>
+
+
+
+<script src="{% static '/web/js/auth.js' %}"></script>
+
+
+<script>
+    $(document).ready(function () {
+
+        {% if register_form.errors %}
+            var errorMessage = "";
+            var errorFields = [];
+            {% for field in register_form %}
+                
+                {% for error in field.errors %}
+                    errorFields.push("{{ field.name }}");
+                    errorMessage += "{{ error|escape }}   " ;
+
+                    $('#{{ field.name }}-input').addClass('is-invalid');
+                    console.log('{{ field.name }}');
+                {% endfor %}
+
+            {% endfor %}
+            {% for error in register_form.non_field_errors %}
+                errorMessage += "{{ error|escape }}   " ;
+            {% endfor %}
+
+            if (errorMessage.includes('This password is too short. It must contain at least 8 characters') || (errorMessage.includes('This password is too common')) ) {
+                $('#password1-input').addClass('is-invalid');
+            }
+
+            if (errorMessage.includes('This field is required.')) {
+                toest("ERROR", 'Complete all feilds' );
+
+            } else if (errorMessage.includes('A user with that username already exists.')) {
+                toest("ERROR", 'A user with that username already exists' );
+
+            } else if (errorMessage.includes('This password is too short. It must contain at least 8 characters')) {
+                toest("ERROR", 'This password is too short. It must contain at least 8 characters' );
+                $('#password1-input').addClass('is-invalid');
+
+            } else if (errorMessage.includes('This password is too common')) {
+                toest("ERROR", 'This password is too common' );
+
+            } else if (errorMessage.includes('The password is too similar to the username')) {
+                toest("ERROR", 'The password is too similar to the username' );
+
+            } else if (errorMessage.includes('The password is too similar to the email address')) {
+                toest("ERROR", 'The password is too similar to the email address' );
+
+            } else {
+                toest("ERROR", errorMessage );
+            }
+
+        {% endif %}
+
+    });
+</script>
+
+
+{% endblock content %}

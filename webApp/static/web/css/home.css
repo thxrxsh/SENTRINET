@@ -1,0 +1,37 @@
+#home-link, .bi-house-door-fill{
+    color: var(--white) !important;
+}
+
+#home_heading {
+    font-size: 4rem;
+}
+
+.fs-ultra-large {
+    font-size: 3rem;
+}
+
+.scan-active{
+    color: var(--blue-4);
+    animation: blinking-dot 1s 0s infinite normal both;
+}
+
+
+.scan-inactive {
+    color: var(--ash);
+}
+
+
+@keyframes blinking-dot {
+    0% {
+        opacity: 0;
+        scale: 0.5;
+    } 
+    50% {
+        opacity: 100;
+        scale: 1;
+    }
+    100%{
+        opacity: 0;
+        scale: 0.5;
+    }
+}

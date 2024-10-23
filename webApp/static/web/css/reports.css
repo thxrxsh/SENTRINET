@@ -1,0 +1,60 @@
+.text-danger {
+    color: var(--red) !important;
+}
+
+#reports-link, .bi-bar-chart-line-fill{
+    color: var(--white) !important;
+}
+
+#reports-table-container{
+    background: var(--glass);
+    color: var(--white);
+}
+
+#reports-table {
+    --bs-table-bg:none;
+}
+
+#reports-table th {
+    padding-top: 2rem ;
+    padding-bottom: 2rem ;
+}
+
+#reports-table td {
+    padding-top: 1.5rem ;
+    padding-bottom: 1.5rem ;
+}
+
+#reports-table tbody tr {
+    cursor: pointer;
+}
+
+
+
+
+
+@keyframes gradientShift {
+    0% {
+        background-size: 200% 200%;
+        background-position: 0% 0%;
+    }
+    50% {
+        background-size: 200% 200%;
+        background-position: 100% 0%;
+    }
+    100% {
+        background-size: 200% 200%;
+        background-position: 0% 100%;
+    }
+}
+
+.running_scan {
+    background: var(--gradient-1);
+    background-size: 200% 200%;
+    animation: gradientShift 5s infinite linear;
+    will-change: background-position;
+}
+
+.running_scan td {
+    color: var(--blue-4) !important;
+}

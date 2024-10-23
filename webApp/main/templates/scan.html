@@ -1,0 +1,82 @@
+{% load static %}
+{% load widget_tweaks %}
+
+<script>var SCAN_RUNNING = "{{SCAN_RUNNING}}";</script>
+
+<div id="dashboard-scan" class="container">
+    <br><br><br><br><br>
+    
+    <div class="d-flex justify-content-center" id="scan-img-container">
+        <img src="{% static 'web/images/logo-512x512.png' %}" alt="" id="scan-img" class="img-circle img-responsive scan-btn">
+    </div>
+    
+    <h3 class="text-center" id="scan_msg">Click to Scan</h3>
+    {% comment %} <h3 class="text-center" id="scan_msg">Scanning in Progress</h3> {% endcomment %}
+    
+    <div class="row justify-content-center mb-2 hide"  id="spinner">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <div id="status-container" class="container row hide">
+        <h1 id="network_status" class="text-center alert alert-success poppins-semibold">Protected</h1>
+        <a id="view_analytics-btn" href="/report/0" class="text-decoration-none px-0"><h1 class="text-center alert alert-light fs-3 py-4">View Live Analytics</h1></a>
+    </div>
+
+
+    <div class="modal modal-lg fade" id="scan_results_summary" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="scan_results_summary-label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="scan_results_summary-label">Scan Summary</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body row">
+                <div class="col-6">
+                    <div id="donut-container">
+                        <canvas id="donutChart"></canvas>
+                    </div>
+                </div>
+
+
+
+                <div class="col-6">
+                    <div id="status-container" class="container">
+                        <h1 class="text-center alert alert-warning poppins-semibold" id="scan_status"></h1>
+                    </div>
+
+                    <div class="table-responsive rounded rounded-3 m-5" id='detail-table-container'>
+                        <table class="table" id="detail-table">
+
+                            <tr>
+                                <td class="poppins-semibold" scope="row">Start Date</td>
+                                <td id="detail-start_date">2024/09/04</td>
+
+                            </tr>
+                            <tr>
+                                <td class="poppins-semibold" scope="row">Start Time</td>
+                                <td id="detail-start_time">20:34:30</td>
+                            </tr>
+                            <tr>
+                                <td class="poppins-semibold" scope="row">Duration</td>
+                                <td id="detail-duration">1h 34min</td>
+                            </tr>
+
+                        </table>
+                    </div>
+
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="" class="btn btn-1" id="full_report-btn">Full Report</a>
+            </div>
+        </div>
+        </div>
+    </div>
+    
+</div>

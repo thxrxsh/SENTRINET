@@ -1,0 +1,23 @@
+#reports-link, .bi-bar-chart-line-fill{
+    color: var(--white) !important;
+}
+
+
+#attack-table-container, #scan_details-table-container{
+    background: var(--glass);
+    color: var(--white);
+}
+
+#attack-table, #scan_details-table {
+    --bs-table-bg:none;
+}
+
+#attack-table th {
+    padding-top: 2rem ;
+    padding-bottom: 2rem ;
+}
+
+#attack-table td {
+    padding-top: 1.5rem ;
+    padding-bottom: 1.5rem ;
+}

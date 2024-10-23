@@ -1,0 +1,32 @@
+/* #alerts-link, .bi-bell-fill{
+    color: var(--white) !important;
+} */
+
+
+.new-alerts {
+    color: var(--red) !important;
+}
+
+
+.unseen-alerts {
+    background: var(--glass);
+}
+
+.message-bubble {
+    background-color: var(--blue-1);
+}
+
+.message-normal {
+    border-left: solid 4px var(--blue-2) !important;
+    border-right: solid 4px var(--blue-2) !important;
+}
+
+.message-warning {
+    border-left: solid 4px var(--yellow) !important;
+    border-right: solid 4px var(--yellow) !important;
+}
+
+.message-danger {
+    border-left: solid 4px var(--red) !important;
+    border-right: solid 4px var(--red) !important;
+}

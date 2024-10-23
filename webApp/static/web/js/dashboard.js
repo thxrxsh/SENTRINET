@@ -37,4 +37,23 @@ $(document).ready(function () {
     });
 
 
+    $('#dashboard-content').scroll(function () {
+        if ($(this).scrollTop() > 300) {
+          $('#scrollTopBtn').fadeIn();
+        } else {
+          $('#scrollTopBtn').fadeOut();
+        }
+      });
+    
+      // Scroll to the top when the button is clicked
+      $('#scrollTopBtn').click(function () {
+        $('#dashboard-content').animate({ scrollTop: 0 }, 'slow');
+      });
+    
+      // Initially hide the button
+      $('#scrollTopBtn').hide();
+
+
+      
+
 });

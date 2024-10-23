@@ -1,44 +1,66 @@
 $(document).ready(function () {
-    const d_chart = document.getElementById('donutChart');
-    const l_chart = document.getElementById('lineChart');
 
+
+  $('#reports-table tbody').find('tr').mouseover(function () { 
+    $(this).addClass('table-active');
+  });
+
+  $('#reports-table tbody').find('tr').mouseleave(function () { 
+      $(this).removeClass('table-active');
+  });
   
-    new Chart(d_chart, {
-      type: 'doughnut',
+
+  $('#reports-table tbody').find('.record_detail').click(function (e) {
+    var record_id = $(this).parent().attr('id').split('_')[1];
+    window.location.href = '/report/' + record_id;
+  });
+
+
+  $('#reports-table tbody').find('.report-action .record-delete').mouseover(function (e) {
+      $(this).addClass('text-danger');
+  });
+  
+  $('#reports-table tbody').find('.report-action .record-delete').mouseleave(function (e) {
+    $(this).removeClass('text-danger');
+  });
+
+
+  $('#reports-table tbody').find('.report-action .record-delete').click(function (e) {
+    var record_id = $(this).closest('tr').attr('id').split('_')[1];
+    $('#delete_report-input').val(record_id);
+    $('#delete_report-modal').modal('show');
+  });
+
+
+  $('#delete_report-yes_btn').click(function (e) { 
+    var record_id = $('#delete_report-input').val();
+    e.preventDefault();
+    $.ajax({
+      type: 'POST',
+      url: '/reports/',
+      headers: { 'X-CSRFToken': csrftoken },
       data: {
-        labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-        datasets: [{
-          label: '# of Votes',
-          data: [12, 19, 3, 5, 2, 3],
-          borderWidth: 1
-        }]
+          "delete_report": record_id,
       },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true
+      dataType: "json",
+      success: function(response) {
+          if (response.status === 'delete-ok') {
+              toest("SUCCESS" , "Report deleted successfully");
+              $('#record_' + record_id).remove();
+          } else {
+              toest("ERROR" , "Failed to delete report");
           }
-        }
+      },
+      error: function(xhr, status, error) {
+          alert("Error: " + error);
       }
     });
 
+    $('#delete_report-modal').modal('hide');
+    
+  });
 
-    new Chart(l_chart, {
-        type: 'line',
-        data: {
-          labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-          datasets: [{
-            label: '# of Votes',
-            data: [12, 19, 3, 5, 2, 3],
-            borderWidth: 1
-          }]
-        },
-        options: {
-          scales: {
-            y: {
-              beginAtZero: true
-            }
-          }
-        }
-      });
+
+
+
 });

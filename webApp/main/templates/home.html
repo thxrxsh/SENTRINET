@@ -1,0 +1,49 @@
+<script>var SCAN_RUNNING = "{{SCAN_RUNNING}}";</script>
+
+
+<h1 class="mt-5 mx-5 poppins-semibold" id="home_heading" >Welcome to SENTRINET!</h1>
+
+<h3 class="mx-5 my-2 text-white-50 poppins-light">Your Front Line Defense Against Netwrok Intrusions</h3>
+
+<br><br>
+
+<div class="row mx-5 justify-content-between">
+
+    <div class="card shadow rounded rounded-4 p-3 mb-5" style="width: 22rem;">
+        <div class="card-body text-center">
+        <h3 class="card-title">Network Status</h3>
+        <h1 id="network-status" class="text-white-50 poppins-semibold py-2 fs-ultra-large">Protected</h1>
+        <p id="intrusions_count-text"></p>
+        </div>
+    </div>
+
+    <div class="card shadow rounded rounded-4 p-3 mb-5" style="width: 22rem;">
+        <div class="card-body">
+        <h3 class="card-title text-center">Scans</h3>
+        <p class="fs-5 py-3">Scan Status : <i class="bi bi-record-fill" id="scan-status-dot"></i> <span id="scan-status">Active</span></p>
+        <a href="/scan/" class="link">Go to Scan</a>
+        </div>
+    </div>
+
+    <div class="card shadow rounded rounded-4 p-3 mb-5" style="width: 22rem;">
+        <div class="card-body">
+        <h3 class="card-title text-center">History</h3>
+        <p class="py-1">At, <span id="last_detected_date">{{last_report.stop_time}}</span></p>
+        <p class="py-1">Sevarity Level : <span id="severity_level" class={% if last_report.scan_status == 'Protected' %} "text-blue-4" {% elif last_report.scan_status == 'Low Risk' or last_report.scan_status == 'High Risk' %} "text-yellow" {% else %} "text-red" {% endif %} >{{last_report.scan_status}}</span></p>
+
+        <a href="/report/{{last_report.report_id}}/" class="link">View Full Report</a>
+        </div>
+    </div>
+
+
+    <div class="card shadow rounded rounded-4 p-3 mb-5" style="width: 22rem;">
+        <div class="card-body">
+        <h3 class="card-title text-center">Alerts</h3>
+        <p class="py-1">New Alerts : <span id="new_alerts_count">N/A</span> </p>
+        <p class="py-1">Total Alerts : <span id="total_alerts_count">N/A</span> </p>
+
+        <a href="/alerts/" class="link alerts-link">View all alerts</a>
+        </div>
+    </div>
+
+</div>

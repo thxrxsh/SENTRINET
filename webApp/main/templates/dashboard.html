@@ -7,6 +7,10 @@
 {% block head %}
 
     <link rel="stylesheet" href="{% static '/web/css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static '/web/css/alerts.css' %}">
+    <link rel="stylesheet" href="{% static '/web/css/settings.css' %}">
+    <link rel="stylesheet" href="{% static '/web/css/account.css' %}">
+
 
     {% if request.path == '/' %}
         <link rel="stylesheet" href="{% static '/web/css/home.css' %}">
@@ -17,11 +21,8 @@
     {% elif request.path == '/reports/'%}
         <link rel="stylesheet" href="{% static '/web/css/reports.css' %}">
 
-    {% elif request.path == '/alerts/'%}
-        <link rel="stylesheet" href="{% static '/web/css/alerts.css' %}">
-
-    {% elif request.path == '/settings/'%}
-            <link rel="stylesheet" href="{% static '/web/css/settings.css' %}">
+    {% elif request.path|slice:":8" == '/report/'%}
+        <link rel="stylesheet" href="{% static '/web/css/report.css' %}">
 
     {% endif %}
 
@@ -33,6 +34,7 @@
 
 {% block content %}
 
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 
 <div id="main_container">
 
@@ -61,17 +63,17 @@
     
     
                 <ul id="nav-list" class="px-4">
-                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="/" id="home-link" class="nav-link poppins-semibold fs-5"> <i class="px-2 bi bi-house-door-fill"></i>  Home</a></li>
-                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="/scan" id="scan-link" class="nav-link poppins-semibold fs-5"> <i class="px-2 bi bi-upc-scan"></i>  Scan</a></li>
-                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="/reports" id="reports-link" class="nav-link poppins-semibold fs-5"> <i class="px-2 bi bi-bar-chart-line-fill"></i>  Reports</a></li>
-                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="/alerts" id="alerts-links" class="nav-link poppins-semibold fs-5"> <i class="px-2 bi bi-bell-fill"></i>  Alerts</a></li>
-                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="settings" id="settings-link" class="nav-link poppins-semibold fs-5"> <i class="px-2 bi bi-gear-fill"></i>  Settings</a></li>
+                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="/" id="home-link" class="home-link nav-link poppins-semibold fs-5"> <i class="px-2 bi bi-house-door-fill"></i>  Home</a></li>
+                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="/scan" id="scan-link" class="scan-link nav-link poppins-semibold fs-5"> <i class="px-2 bi bi-upc-scan"></i>  Scan</a></li>
+                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="/reports" id="reports-link" class="reports-link nav-link poppins-semibold fs-5"> <i class="px-2 bi bi-bar-chart-line-fill"></i>  Reports</a></li>
+                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="/alerts" id="alerts-link" class="alerts-link nav-link poppins-semibold fs-5"> <i class="px-2 bi bi-bell-fill"></i>  Alerts</a></li>
+                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="settings" id="settings-link" class="settings-link nav-link poppins-semibold fs-5"> <i class="px-2 bi bi-gear-fill"></i>  Settings</a></li>
                 </ul>
     
     
                 <div id="profile-container" class="d-flex justify-content-between m-4">
-                    <h5><i class="bi bi-person-fill me-3"></i> <span id="user_name">thxrxsh</span> </h5>
-                    <button type="button" class="btn btn-sm"><i class="bi bi-chevron-down"></i></button>
+                    <h5><i class="bi bi-person-fill me-3"></i> <span id="user_name">{{request.user}}</span> </h5>
+                    <button type="button" class="btn btn-sm account-link"><i class="bi bi-chevron-down"></i></button>
                 </div>
 
 
@@ -91,15 +93,15 @@
                 </div> 
 
                 <ul id="nav-list-collapsed" class="px-3 ms-2">
-                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="/" class="nav-link poppins-semibold fs-5 text-center"> <i class="fs-3 bi bi-house-door-fill"></i>&nbsp;</a></li>
-                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="/scan" class="nav-link poppins-semibold fs-5 text-center"> <i class="fs-3 bi bi-upc-scan"></i>&nbsp;</a></li>
-                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="/reports" class="nav-link poppins-semibold fs-5 text-center"> <i class="fs-3 bi bi-bar-chart-line-fill">&nbsp;</i></a></li>
-                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="/alerts" class="nav-link poppins-semibold fs-5 text-center"> <i class="fs-3 bi bi-bell-fill"></i>&nbsp;</a></li>
-                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="settings" class="nav-link poppins-semibold fs-5 text-center"> <i class="fs-3 bi bi-gear-fill"></i>&nbsp;</a></li>
+                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="/" class="home-link nav-link poppins-semibold fs-5 text-center"> <i class="fs-3 bi bi-house-door-fill"></i>&nbsp;</a></li>
+                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="/scan" class="scan-link nav-link poppins-semibold fs-5 text-center"> <i class="fs-3 bi bi-upc-scan"></i>&nbsp;</a></li>
+                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="/reports" class="reports-link nav-link poppins-semibold fs-5 text-center"> <i class="fs-3 bi bi-bar-chart-line-fill">&nbsp;</i></a></li>
+                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="/alerts" class="alerts-link nav-link poppins-semibold fs-5 text-center "> <i class="fs-3 bi bi-bell-fill"></i>&nbsp;</a></span></li>
+                    <li class="nav-item p-2 my-2 rounded rounded-4"><a href="settings" class="settings-link nav-link poppins-semibold fs-5 text-center"> <i class="fs-3 bi bi-gear-fill"></i>&nbsp;</a></li>
                 </ul>
     
                 <div id="profile-container-collapsed" class="d-flex justify-content-center m-4">
-                    <h3> <a href=""><i class="bi bi-person-fill ps-2"></i> </a></h3>
+                    <h3> <a href="/account/" class="account-link"><i class="bi bi-person-fill ps-2"></i> </a></h3>
                 </div>
 
             </div>
@@ -122,6 +124,9 @@
         {% elif request.path == '/reports/'%}
             {% include "reports.html" %}
 
+        {% elif request.path|slice:":8" == '/report/'%}
+            {% include "report.html" %}
+
         {% elif request.path == '/alerts/'%}
             {% include "alerts.html" %}
 
@@ -137,16 +142,27 @@
 
 
 
+    {% include "alerts.html" %}
+
+    {% include "settings.html" %}
+
+    {% include "account.html" %}
 
 
 
 
+    <button id="scrollTopBtn" class="btn btn-1"><i class="bi bi-arrow-up"></i></button>
 
 </div>
 
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1"></script>
+
 <script src="{% static '/web/js/dashboard.js' %}"></script>
+<script src="{% static '/web/js/alerts.js' %}"></script>
+<script src="{% static '/web/js/settings.js' %}"></script>
+<script src="{% static '/web/js/account.js' %}"></script>
 
 
 {% if request.path == '/' %}
@@ -158,11 +174,9 @@
 {% elif request.path == '/reports/'%}
     <script src="{% static '/web/js/reports.js' %}"></script>
 
-{% elif request.path == '/alerts/'%}
-    <script src="{% static '/web/js/alerts.js' %}"></script>
+{% elif request.path|slice:":8" == '/report/'%}
+    <script src="{% static '/web/js/report.js' %}"></script>
 
-{% elif request.path == '/settings/'%}
-    <script src="{% static '/web/js/settings.js' %}"></script>
 {% endif %}
 
 

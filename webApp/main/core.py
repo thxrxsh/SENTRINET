@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.utils import timezone as django_timezone
 
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.ensemble import RandomForestClassifier
@@ -12,6 +13,7 @@ import joblib
 from scapy.all import *
 from collections import defaultdict
 import time
+from datetime import timedelta, datetime
 import csv
 import os
 import socket
@@ -39,6 +41,7 @@ RFC_PATH = os.path.join(settings.STATICFILES_DIRS[0], 'joblibs', 'random_forest_
 XGB_PATH = os.path.join(settings.STATICFILES_DIRS[0], 'joblibs', 'xgboost_model.joblib')
 
 PACKETS_CSV_PATH = os.path.join(settings.STATICFILES_DIRS[0], 'capture_history', 'running_scan.csv')
+KNOWN_DNS_CSV_PATH = os.path.join(settings.STATICFILES_DIRS[0], 'capture_history', 'known_dns.csv')
 
 TRAIN_DATA_CSV_PATH = os.path.join(settings.STATICFILES_DIRS[0], 'datasets', 'NSL_KDD', 'KDDTrain+.csv')
 TEST_DATA_CSV_PATH = os.path.join(settings.STATICFILES_DIRS[0], 'datasets', 'NSL_KDD', 'KDDTest+.csv')
@@ -307,7 +310,13 @@ def get_my_ip():
 def extractFeatures(packet):
     global SESSIONS, HOST_STATS
 
-    session_key = (packet[IP].src, packet[IP].dst, packet[TCP].sport, packet[TCP].dport)
+    if packet.haslayer(TCP):
+        session_key = (packet[IP].src, packet[IP].dst, packet[TCP].sport, packet[TCP].dport)
+    elif packet.haslayer(UDP):
+        session_key = (packet[IP].src, packet[IP].dst, packet[UDP].sport, packet[UDP].dport)
+    else:
+        session_key = (packet[IP].src, packet[IP].dst, 0, 0)  # Default if not TCP or UDP
+
     SESSIONS[session_key].append(packet)
 
 
@@ -357,33 +366,41 @@ def extractFeatures(packet):
     # Feature: duration
     duration = packet.time - SESSIONS[session_key][0].time if SESSIONS[session_key] else 0
 
-    # Debugging Protocol Type
+    # Protocol Type
     if packet.haslayer(IP):
-        print(f"Protocol: {packet[IP].proto}")
-        protocol_type = PROTOCOL_TYPE_MAPPING.get(packet[IP].proto, -1)
+        print(f"Protocol Number: {packet[IP].proto}")
+        protocol = packet[IP].proto
+        protocol_type = PROTOCOL_TYPE_MAPPING.get(protocol, 'other')
+        print(f"Protocol: {protocol_type}")
     else:
-        protocol_type = -1
+        protocol_type = 'other'  # Non-IP packet
 
-    # Debugging TCP Flags
-    if packet.haslayer(TCP):
-        print(f"TCP Flags: {packet[TCP].flags}")
+    # TCP Flags and Service detection using protocol
+    if protocol_type == 'tcp' and packet.haslayer(TCP):
         flag = mapTcpFlags(packet[TCP].flags)
+        service = SERVICE_MAPPING.get(packet[TCP].dport, 'other')
+        src_bytes = len(packet[Raw].load) if packet.haslayer(Raw) else 0
+        dst_bytes = sum(len(p[Raw].load) for p in SESSIONS[session_key] if p.haslayer(Raw)) if packet.haslayer(Raw) else 0
+
+        print(f"Port : {packet[TCP].dport}")
+        print(f"Service : {service}")
+
+    elif protocol_type == 'udp' and packet.haslayer(UDP):
+        flag = 'OTH'  # No flags for UDP, so assign 'OTH'
+        service = SERVICE_MAPPING.get(packet[UDP].dport, 'other')
+        src_bytes = len(packet[Raw].load) if packet.haslayer(Raw) else 0
+        dst_bytes = sum(len(p[Raw].load) for p in SESSIONS[session_key] if p.haslayer(Raw)) if packet.haslayer(Raw) else 0
+
+        print(f"Port : {packet[UDP].dport}")
+        print(f"Service : {service}")
+        
     else:
         flag = 'OTH'
+        service = 'other'
+        src_bytes = 0
+        dst_bytes = 0
 
-    # Debugging Service (TCP port)
-    if packet.haslayer(TCP):
-        print(f"TCP Destination Port: {packet[TCP].dport}")
-        service = SERVICE_MAPPING.get(packet[TCP].dport, 'other')
-        print(f"Service: {service}")
-    else:
-        service = -1
 
-    # Feature: src_bytes
-    src_bytes = len(packet[Raw].load) if packet.haslayer(Raw) else 0
-
-    # Feature: dst_bytes (sum of response packets' lengths in the session)
-    dst_bytes = sum(len(p[Raw].load) for p in SESSIONS[session_key] if p.haslayer(Raw)) if packet.haslayer(Raw) else 0
 
     # Feature: same_srv_rate
     current_time = time.time()
@@ -488,12 +505,68 @@ def extractFeatures(packet):
 
 
 
+
+
+# Function to read known DNS records from CSV
+def load_known_dns():
+    known_dns = {}
+    if os.path.exists(KNOWN_DNS_CSV_PATH):
+        with open(KNOWN_DNS_CSV_PATH, mode='r') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                known_dns[row['ip_addr']] = row['domain_name']
+    return known_dns
+
+# Function to write new DNS record to CSV
+def write_known_dns(ip_addr, domain_name):
+    file_exists = os.path.isfile(KNOWN_DNS_CSV_PATH)
+    with open(KNOWN_DNS_CSV_PATH, mode='a', newline='') as file:
+        writer = csv.DictWriter(file, fieldnames=['ip_addr', 'domain_name'])
+        if not file_exists:
+            writer.writeheader()
+        writer.writerow({'ip_addr': ip_addr, 'domain_name': domain_name})
+
+
+
+
+# Updated function to get domain with caching
+def getDomain(ip):
+    # Load the known DNS records
+    known_dns = load_known_dns()
+
+    # Check if the IP is in the known DNS cache
+    if ip in known_dns:
+        return known_dns[ip]
+
+    # If not found, perform DNS lookup
+    try:
+        domain_name = socket.gethostbyaddr(ip)[0]
+    except (socket.herror, socket.gaierror):
+        domain_name = ''
+
+    # Cache the result by writing it to the known DNS CSV file
+    write_known_dns(ip, domain_name)
+
+    return domain_name
+
+
+
+
 def writePacketToCSV(feature_vector, attack_type, csv_filename=PACKETS_CSV_PATH):
     global FEATURE_NAMES
 
+
+    ip_addr = feature_vector[-1]  # Assuming last element of the feature_vector is the IP address
+
+    # Perform DNS lookup to get the domain name
+    domain_name = getDomain(ip_addr)
+
     # Check if the file exists
     file_exists = os.path.isfile(csv_filename)
-    columns = FEATURE_NAMES + ['ip_addr', 'attack_type', 'date_time']
+    
+    # Add 'domain_name' to the columns
+    columns = FEATURE_NAMES + ['ip_addr', 'domain_name', 'attack_type', 'date_time']
+    
     # Open CSV file in append mode
     with open(csv_filename, mode='a', newline='') as file:
         writer = csv.DictWriter(file, fieldnames=columns)
@@ -502,8 +575,13 @@ def writePacketToCSV(feature_vector, attack_type, csv_filename=PACKETS_CSV_PATH)
         if not file_exists:
             writer.writeheader()
 
+        # Prepare the data row with domain_name and other details
+        row_data = feature_vector + [ domain_name, attack_type, datetime.now()]
+
         # Write the packet details
-        writer.writerow(dict(zip(columns, feature_vector + [attack_type, datetime.now()])) )
+        writer.writerow(dict(zip(columns, row_data)))
+
+
 
 
 
@@ -541,8 +619,11 @@ def capturePackets(interface=None):
 
     if not interface:
         interface = conf.iface
+    print(interface)
+
 
     def processPacket(packet):
+        print("Starting Capture...")
         try:
             feature_vector = extractFeatures(packet)
 
@@ -567,25 +648,38 @@ def capturePackets(interface=None):
 
     def packet_capture_loop():
         global STOP_FLAG
-        sniff(iface=interface, prn=processPacket, stop_filter=lambda x: STOP_FLAG)
+        print(f"Capturing on {interface}")
+        sniff(iface=interface, prn=processPacket, promisc=True, stop_filter=lambda x: STOP_FLAG)
+        print("Packet capture stopped")
+
     
     packet_capture_loop()
 
 
 
+def getFilePath(filename):
+    global PACKETS_CSV_PATH
+
+    if filename != PACKETS_CSV_PATH:
+        filepath = os.path.join(settings.STATICFILES_DIRS[0], 'capture_history', filename)
+    else:
+        filepath = filename
+
+    return filepath
 
 
 
 
+def getCounts(csv_filename=PACKETS_CSV_PATH):
+    csv_filename = getFilePath(csv_filename)
 
-def getCounts(csv_filename):
     df = pd.read_csv(csv_filename)
     attack_counts = df['attack_type'].value_counts()
     return attack_counts.to_dict()
 
 
 def getAttackDetails(csv_filename):
-
+    csv_filename = getFilePath(csv_filename)
     df = pd.read_csv(csv_filename)
     filtered_df = df[df['attack_type'] != 'Normal']
     result_df = filtered_df[['date_time', 'attack_type', 'ip_addr']]
@@ -594,7 +688,66 @@ def getAttackDetails(csv_filename):
 
 
 
-def analyzeStatus(csv_filename):
+def getPacketDetails(csv_filename=PACKETS_CSV_PATH):
+    csv_filename = getFilePath(csv_filename)
+    # Read the CSV file into a DataFrame
+    df = pd.read_csv(csv_filename)
+    
+    # Filter out normal traffic
+    filtered_df = df[df['attack_type'] != 'Normal']
+    
+    # Group by IP address and calculate attack levels and hits
+    grouped = filtered_df.groupby('ip_addr').agg({
+        'attack_type': 'count',  # Count the number of attacks per IP (this will be used for both hits and attack level)
+        'date_time': 'first',    # Get the first attack time for the group
+        'domain_name': 'first'   # Get the domain name from the first attack
+    }).reset_index()
+    
+    # Split date_time into separate date and time columns
+    grouped['date'] = pd.to_datetime(grouped['date_time']).dt.date
+    grouped['time'] = pd.to_datetime(grouped['date_time']).dt.time
+
+    # Define thresholds for attack levels based on the number of attacks
+    def calculate_attack_level(count):
+        if count > 50:
+            return 'High'
+        elif count > 20:
+            return 'Medium'
+        else:
+            return 'Low'
+    
+    # Add attack level column
+    grouped['attack_level'] = grouped['attack_type'].apply(calculate_attack_level)
+
+    # Add 'hits' column, which is simply the count of attacks per IP
+    grouped['hits'] = grouped['attack_type']
+
+    # Merge the grouped DataFrame with the original attack types per IP address
+    result_df = pd.merge(filtered_df[['ip_addr', 'attack_type']], grouped, on='ip_addr', how='left', suffixes=('_orig', '_grouped'))
+
+    # Select the original attack type
+    result_df['attack_type'] = result_df['attack_type_orig']
+    
+    # Check if the necessary columns are in the DataFrame
+    required_columns = ['ip_addr', 'date', 'time', 'attack_type', 'attack_level', 'domain_name', 'hits']
+    missing_columns = [col for col in required_columns if col not in result_df.columns]
+    if missing_columns:
+        print("Missing Columns:", missing_columns)
+        raise KeyError(f"Columns missing in result_df: {', '.join(missing_columns)}")
+
+    # Format the final result as a dictionary, now with separate date and time columns
+    result_df = result_df[['ip_addr', 'date', 'time', 'attack_type', 'attack_level', 'domain_name', 'hits']]
+
+    return result_df.to_dict(orient='records')
+
+
+
+
+
+
+
+def analyzeStatus(csv_filename=PACKETS_CSV_PATH):
+    csv_filename = getFilePath(csv_filename)
     # Define thresholds for risk levels
     RISK_THRESHOLDS = {
         "Protected": 0,
@@ -647,6 +800,8 @@ def analyzeStatus(csv_filename):
 
 
 def analyze(csv_filename=PACKETS_CSV_PATH):
+    csv_filename = getFilePath(csv_filename)
+
     counts = getCounts(csv_filename)
     status = analyzeStatus(csv_filename)
     attack_details = getAttackDetails(csv_filename)
@@ -665,22 +820,36 @@ def saveScanRecords(request):
 
     csv_filename = PACKETS_CSV_PATH
 
+    # Make START_TIME and STOP_TIME timezone-aware
+    if django_timezone.is_naive(START_TIME):
+        START_TIME = django_timezone.make_aware(START_TIME)
+    if django_timezone.is_naive(STOP_TIME):
+        STOP_TIME = django_timezone.make_aware(STOP_TIME)
+
+
     # Format STOP_TIME to 'yyyy-mm-dd_hh-mm-ss'
     formatted_time = STOP_TIME.strftime('%Y-%m-%d_%H-%M-%S')
-    new_csv_filename = os.path.join(settings.STATICFILES_DIRS[0], 'capture_history', f'{formatted_time}.csv')
+    new_csv_filepath = os.path.join(settings.STATICFILES_DIRS[0], 'capture_history', f'{formatted_time}.csv')
+    new_csv_filename = f"{formatted_time}.csv"
 
     # Analyze the CSV file to determine the status
     analyze_details = analyze(csv_filename)
     status = analyze_details['status']
     
-    # Rename the CSV file
     try:
-        os.rename(csv_filename, new_csv_filename)
-        database.saveScanRecord(request, START_TIME, STOP_TIME, status, new_csv_filename)
-        return True
+        # Rename the CSV file
+        os.rename(csv_filename, new_csv_filepath)
+
+        # Save record in database
+        record_id = database.saveScanRecord(request, START_TIME, STOP_TIME, status, new_csv_filename)
+
+        return record_id
+
+
     
-    except:
-        return False
+    except Exception as e:
+        print(f"Error while saving record: {e}")
+        return -1
 
 
 def set_stop_flag(value):
@@ -689,6 +858,18 @@ def set_stop_flag(value):
 
     
 
+def deleteCSV(csv_filename):
+    csv_filename = getFilePath(csv_filename)
+
+    if os.path.exists(csv_filename):
+        try:
+            os.remove(csv_filename)
+            return f"{csv_filename} has been deleted."
+
+        except OSError as e:
+            return f"Error deleting file: {e}"
+    else:
+        return f"{csv_filename} does not exist."
 
 
 

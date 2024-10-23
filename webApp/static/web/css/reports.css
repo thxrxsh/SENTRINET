@@ -1,23 +1,60 @@
+.text-danger {
+    color: var(--red) !important;
+}
+
 #reports-link, .bi-bar-chart-line-fill{
     color: var(--white) !important;
 }
 
-
-#attack-table-container{
+#reports-table-container{
     background: var(--glass);
     color: var(--white);
 }
 
-#attack-table {
+#reports-table {
     --bs-table-bg:none;
 }
 
-#attack-table th {
+#reports-table th {
     padding-top: 2rem ;
     padding-bottom: 2rem ;
 }
 
-#attack-table td {
+#reports-table td {
     padding-top: 1.5rem ;
     padding-bottom: 1.5rem ;
+}
+
+#reports-table tbody tr {
+    cursor: pointer;
+}
+
+
+
+
+
+@keyframes gradientShift {
+    0% {
+        background-size: 200% 200%;
+        background-position: 0% 0%;
+    }
+    50% {
+        background-size: 200% 200%;
+        background-position: 100% 0%;
+    }
+    100% {
+        background-size: 200% 200%;
+        background-position: 0% 100%;
+    }
+}
+
+.running_scan {
+    background: var(--gradient-1);
+    background-size: 200% 200%;
+    animation: gradientShift 5s infinite linear;
+    will-change: background-position;
+}
+
+.running_scan td {
+    color: var(--blue-4) !important;
 }

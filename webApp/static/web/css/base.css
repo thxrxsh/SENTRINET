@@ -6,6 +6,7 @@
     --white : #D3D3D3;
     --ash : #8E9DA7;
     --red : rgb(255, 93, 93);
+    --yellow : #ffe184;
     --gradient-1 : linear-gradient(200deg, rgba(0,86,91,0.7904411764705882) 30%, rgba(95,55,159,0.7904411764705882) 100%);
     --gradient-2 : linear-gradient(200deg, rgba(9,196,198,0.2274159663865546) 0%, rgba(55,63,159,0.48792016806722693) 100%);
     --gradient-3 : radial-gradient(circle, rgba(95, 106, 115, 0.40) 0%, rgba(180,199,217,0.4) 100%);
@@ -15,13 +16,41 @@
     --bs-focus-ring-color: none !important;
 }
 
+.text-white {
+  color: var(--white);
+}
 
+.text-blue-4 {
+  color: var(--blue-4);
+}
+
+.text-yellow {
+  color: var(--yellow);
+}
+
+.text-red {
+  color: var(--red);
+}
 
 .alert-warning {
   --bs-alert-color: #ffe184;
   background: var(--glass);
   /* --bs-alert-bg: #ffe1840f; */
   /* --bs-alert-border-color: #a18b4b; */
+  --bs-alert-border-color: none;
+  --bs-alert-link-color: var(--bs-warning-text-emphasis);
+}
+
+.alert-success {
+  --bs-alert-color: #84ffd6;
+  background: var(--glass);
+  --bs-alert-border-color: none;
+  --bs-alert-link-color: var(--bs-warning-text-emphasis);
+}
+
+.alert-danger {
+  --bs-alert-color: #ff6c6c;
+  background: var(--glass);
   --bs-alert-border-color: none;
   --bs-alert-link-color: var(--bs-warning-text-emphasis);
 }
@@ -35,13 +64,21 @@
 }
 
 html {
-    -webkit-user-select: none; /* Safari */
-    -ms-user-select: none; /* IE 10 and IE 11 */
-    user-select: none; /* Standard syntax */
+    -webkit-user-select: none; 
+    -ms-user-select: none; 
+    user-select: none; 
 }
+
+.user-select {
+  -webkit-user-select: text !important; 
+  -ms-user-select: text !important; 
+  user-select: text !important;
+}
+
     /* width */
     ::-webkit-scrollbar {
     width: 6px;
+    height: 6px;
     }
     
     /* Track */
@@ -207,7 +244,7 @@ html {
 
 #small-gradient{
     position: fixed;
-    z-index: -1;
+    z-index: -2;
     width: 30rem;
     height: 30rem;
     transform: translate(80vw,-35%);
@@ -252,37 +289,6 @@ html {
 
 
 
-.form-control:not(.btn) {
-    border: none;
-    border-radius: 0;
-    border-bottom: 1px solid var(--white);
-    color: var(--blue-1);
-    font-weight: 600;
-    padding-left: 0;
-    padding-right: 0;
-
-}
-
-.form-control:not(.btn):focus {
-  border-bottom: 1px solid var(--blue-4);
-}
-
-.form-check-input {
-  background-color: var(--ash);
-}
-
-.form-check-input:checked {
-  background-color: var(--blue-4);
-  border-color: var(--blue-3);
-}
-
-.is-invalid {
-  border-bottom: 2px solid var(--red) !important;
-}
-
-.form-control.is-invalid:focus {
-  box-shadow: none !important;
-}
 
 .link {
     text-decoration: none;
@@ -297,3 +303,10 @@ html {
 .toast-header, .toast-body{
   background :var(--blue-1);
 }
+
+.scrollable-x {
+  max-width: 200px;  /* Set maximum width for the cell */
+  overflow-x: auto;  /* Enable horizontal scroll */
+  white-space: nowrap; /* Prevent text from wrapping */
+}
+

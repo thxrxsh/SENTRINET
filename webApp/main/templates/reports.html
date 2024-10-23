@@ -1,60 +1,88 @@
 <br><br>
-<div class="d-flex justify-content-center">
 
-    <div id="status-container" class="container">
-        <h1 class="text-center alert alert-warning poppins-semibold">Medium Risk</h1>
-    </div>
-
-</div>
-
-<div class="row w-100">
-    <div id="donut-container" class="col-lg-5 m-5">
-        <canvas id="donutChart"></canvas>
-    </div>
-
-    <div id="line-container" class="col-lg-5 m-5">
-        <canvas id="lineChart"></canvas>
-    </div>
+<div class="container">
+    
 </div>
 
 
-<div class="table-responsive rounded rounded-3 m-5" id='attack-table-container'>
-    <table class="table fs-5" id="attack-table">
+{% if reports|length == 0 %}
+    <br><br><br>
+    <h4 class="text-center">You don't have any records yet</h4>
+{% else %}
+
+<h1 class="text-center">Scan Reports</h1>
+<div class="table-responsive rounded rounded-3 m-5" id='reports-table-container'>
+    <table class="table fs-5 text-center" id="reports-table">
         <thead>
         <tr>
             <th scope="col">Date</th>
             <th scope="col">Time</th>
-            <th scope="col">IP</th>
-            <th scope="col">Domain</th>
-            <th scope="col">Attack</th>
-            <th scope="col">Level</th>
+            <th scope="col">Duration</th>
+            <th scope="col">Status</th>
+            <th scope="col">Actions</th>
         </tr>
         </thead>
         <tbody>
-        <tr>
-            <td scope="row">1</td>
-            <td>Mark</td>
-            <td>Otto</td>
-            <td>@mdo</td>
-            <td>@mdo</td>
-            <td>@mdo</td>
-        </tr>
-        <tr>
-            <td scope="row">2</td>
-            <td>Jacob</td>
-            <td>tdornton</td>
-            <td>@fat</td>
-            <td>@fat</td>
-            <td>@fat</td>
-        </tr>
-        <tr>
-            <td scope="row">3</td>
-            <td>Larry the Bird</td>
-            <td>@twitter</td>
-            <td>@twitter</td>
-            <td>@twitter</td>
-            <td>@twitter</td>
-        </tr>
+
+            {% if live_report == 1 %}
+                <tr id="record_0" class="record_row running_scan">
+                    <td scope="row" colspan=5 class="record_detail">Currently Running</td>
+                </tr>
+            
+            {% endif %}
+
+
+            {% for report in reports %}
+            <tr id="record_{{ report.record_id }}" class="record_row">
+                <td scope="row" class="record_detail">{{ report.start_date }}</td>
+                <td class="record_detail">{{ report.start_time }}</td>
+                <td class="record_detail">
+                    {% if report.duration.0 != 0 %}
+                        {{report.duration.0}} d 
+                    {% endif %}
+
+                    {% if report.duration.1 != 0 %}
+                        {{report.duration.1}} h 
+                    {% endif %}
+
+                    {% if report.duration.2 != 0 %}
+                        {{report.duration.2}} min 
+                    {% endif %}
+
+                    {% if report.duration.3 != 0 %}
+                        {{report.duration.3}} sec 
+                    {% endif %}
+                </td>
+                <td class="record_detail">{{ report.status }}</td>
+
+                <td class="report-action"> <i class="bi bi-trash3-fill record-delete"></i></td>
+            </tr>
+            {% endfor %}
+            
         </tbody>
     </table>
+</div>
+
+
+{% endif %}
+
+
+
+<div class="modal fade" id="delete_report-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="delete_report-modalLabel" aria-hidden="true">
+    <div class="modal-dialog ">
+    <div class="modal-content">
+        <div class="modal-header">
+        <h1 class="modal-title fs-5 text-danger" id="delete_report-modalLabel">Delete Report</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <input type="text" class="hide" value="" id="delete_report-input">
+            Are you sure that you want to delete this report?
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+        <button type="button" class="btn btn-danger" id="delete_report-yes_btn">Yes</button>
+        </div>
+    </div>
+    </div>
 </div>

@@ -1,0 +1,68 @@
+
+
+<div class="modal modal-lg fade" id="settings-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="settings-modalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+        <div class="modal-header">
+        <h1 class="modal-title fs-5" id="settings-modalLabel">Settings</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+
+        <div class="modal-body">
+
+            <div id="system-settings">
+                <h6>System Settings</h6>
+
+                <div id="engine_select-group" class="input-group mb-3">
+                    <label class="input-group-text" for="engine_select">Engine</label>
+                    <select class="form-select" id="engine_select">
+                      <option selected value="XGBoost">XGBoost</option>
+                      <option value="RandomForestClassifier">Random Forest Classifier</option>
+                    </select>
+                </div>
+
+                <div id="timezone_select-group" class="input-group mb-3">
+                    <label class="input-group-text" for="timezone_select">TimeZone</label>
+                    <select class="form-select" id="timezone_select">
+                      <option selected value="Automatic">Automatic</option>
+                      <option value="UTC">UTC</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <br>
+
+            <div id="user-settings">
+                <h6>User Settings</h6>
+
+                <div id="language_select-group" class="input-group mb-3">
+                    <label class="input-group-text" for="language_select">Language</label>
+                    <select class="form-select" id="language_select">
+                      <option selected value="English">English</option>
+                      <option value="Sinhala">Sinhala</option>
+                    </select>
+                </div>
+
+                <div id="theme_select-group" class="input-group mb-3">
+                    <label class="input-group-text" for="theme_select">Theme</label>
+                    <select class="form-select" id="theme_select">
+                      <option selected value="System Default">System Default</option>
+                      <option value="Dark">Dark</option>
+                      <option value="Light">Light</option>
+                    </select>
+                </div>
+
+            </div>
+
+            
+
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-1">Save</button>
+        </div>
+    </div>
+
+    </div>
+</div>
